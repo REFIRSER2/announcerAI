@@ -1,0 +1,22 @@
+discord:
+  token: "YOUR_DISCORD_BOT_TOKEN_HERE"
+  prefix: "!"
+
+vision:
+  api_provider: "openai"  # "openai" or "claude"
+  api_key: "YOUR_VISION_API_KEY_HERE"
+  frame_interval: 2  # seconds between frame analysis
+  model: "gpt-4o"  # or "claude-3-5-sonnet-20241022"
+
+tts:
+  enabled: true
+  tts_server_url: "http://localhost:50021"  # ttsclient server URL
+  voice_character_slot: 0
+  language: "ko"
+  speed: 1.0
+
+system:
+  log_level: "INFO"
+  max_queue_size: 10
+  frame_buffer_size: 30
+  enable_training: false  # future feature

@@ -1,0 +1,32 @@
+# Discord Bot
+discord.py[voice]>=2.3.0
+PyNaCl>=1.5.0
+
+# Image Processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# AI Vision APIs
+openai>=1.12.0
+anthropic>=0.18.0
+
+# OCR
+pytesseract>=0.3.10
+
+# Audio Processing
+pydub>=0.25.1
+
+# Async & Queue
+aiohttp>=3.9.0
+aiofiles>=23.0.0
+
+# Configuration
+PyYAML>=6.0
+
+# Logging
+python-json-logger>=2.0.7
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
