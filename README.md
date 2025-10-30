@@ -31,15 +31,23 @@ brew install ffmpeg
 
 ### 3. TTS 서버 설정
 
-ttsclient-master 디렉토리로 이동하여 TTS 서버를 실행합니다:
+**옵션 1: Hugging Face 배포 버전 (권장)**
+```bash
+# https://huggingface.co/wok000/ttsclient000/tree/main 에서 다운로드
+# 압축 해제 후
+start_http.bat  # Windows
+./start_http.command  # Mac
+```
 
+**옵션 2: 소스 코드 버전 (고급)**
 ```bash
 cd ttsclient-master
-# Windows
-start_http.bat
-# Mac/Linux
-./start_http.command
+pip install poetry
+poetry install
+poetry run python -m ttsclient.main cui
 ```
+
+자세한 내용은 [SETUP_GUIDE.md](SETUP_GUIDE.md)를 참조하세요.
 
 ### 4. 설정 파일 생성
 

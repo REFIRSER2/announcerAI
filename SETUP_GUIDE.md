@@ -91,38 +91,72 @@ https://discord.com/developers/applications
 
 ## 6. TTS 서버 설정
 
-### 6.1. TTS 클라이언트 압축 해제
-프로젝트에 이미 `ttsclient-master.zip`이 포함되어 있습니다.
+TTS 서버를 실행하는 방법은 두 가지가 있습니다:
 
+### 옵션 1: Hugging Face 배포 버전 사용 (권장 - 간편함)
+
+#### 6.1. 배포 버전 다운로드
+https://huggingface.co/wok000/ttsclient000/tree/main 에서 다운로드:
+- **Windows CPU**: `win_std_*.zip` 다운로드
+- **Windows GPU**: `win_cuda_*.zip` 다운로드 (NVIDIA GPU)
+- **macOS**: `mac_*.zip` 다운로드 (Apple Silicon)
+
+#### 6.2. 압축 해제 및 실행
 ```bash
-# 이미 압축 해제되어 있음
-cd ttsclient-master
-```
+# 다운로드한 파일 압축 해제
+unzip win_std_*.zip  # 또는 해당 파일
 
-### 6.2. TTS 서버 실행
+cd (압축 해제된 디렉토리)
 
-#### Windows
-```bash
-# CPU 버전
+# Windows
 start_http.bat
 
-# CUDA 버전 (NVIDIA GPU가 있는 경우)
-# Hugging Face에서 CUDA 버전 다운로드 필요
-```
-
-#### Mac/Linux
-```bash
+# Mac
 chmod +x start_http.command
 ./start_http.command
 ```
+
+### 옵션 2: 소스 코드 버전 사용 (고급 - 커스터마이징 가능)
+
+프로젝트에 포함된 `ttsclient-master`는 소스 코드 버전입니다.
+
+#### 6.1. Poetry 설치
+```bash
+# Python 3.9 이상 필요
+pip install poetry
+```
+
+#### 6.2. 의존성 설치
+```bash
+cd ttsclient-master
+
+# Git submodule 초기화
+git submodule update --init --recursive
+
+# Poetry로 의존성 설치
+poetry install
+```
+
+#### 6.3. TTS 서버 실행
+```bash
+# HTTP 서버 실행
+poetry run python -m ttsclient.main cui
+
+# HTTPS 서버 실행 (리모트 접속)
+poetry run python -m ttsclient.main cui --https true
+```
+
+**참고**: 소스 코드 버전은 추가 설정이 필요할 수 있습니다. 자세한 내용은 `ttsclient-master/README.md`를 참조하세요.
 
 ### 6.3. TTS 서버 확인
 브라우저에서 http://localhost:50021 접속하여 TTS UI가 표시되는지 확인
 
 ### 6.4. 음성 모델 설정
-1. TTS UI에서 모델 등록
-2. 참조 음성 및 참조 텍스트 등록
-3. 음성 생성 테스트
+1. TTS UI에서 "モデル選択" → "編集" 클릭하여 모델 등록
+2. "参照話者選択" → "編集"에서 참조 음성 및 참조 텍스트 등록
+3. 텍스트 입력하여 음성 생성 테스트
+
+**중요**: 최소 1개 이상의 모델과 참조 음성이 등록되어 있어야 Announcer AI가 정상 작동합니다.
 
 ## 7. 설정 파일 구성
 
@@ -176,10 +210,18 @@ VISION_API_KEY=your_api_key
 ## 8. 실행
 
 ### 8.1. TTS 서버 실행 (먼저)
+
+**배포 버전 사용 시:**
+```bash
+cd (Hugging Face에서 다운로드한 디렉토리)
+# Windows: start_http.bat
+# Mac: ./start_http.command
+```
+
+**소스 코드 버전 사용 시:**
 ```bash
 cd ttsclient-master
-# Windows: start_http.bat
-# Mac/Linux: ./start_http.command
+poetry run python -m ttsclient.main cui
 ```
 
 ### 8.2. Announcer AI 실행
