@@ -14,6 +14,14 @@ from typing import Dict, List, Optional, Any
 
 from .event_detector import EventType, GameEvent
 
+# Import LCK-style commentary templates
+try:
+    from .commentary_generator_lck import get_lck_commentary, get_situational_commentary as get_lck_situational
+    LCK_STYLE_AVAILABLE = True
+except ImportError:
+    LCK_STYLE_AVAILABLE = False
+    logger.warning("LCK style commentary not available")
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,7 +66,8 @@ class CommentaryGenerator:
     def __init__(
         self,
         enable_variations: bool = True,
-        enable_context: bool = True
+        enable_context: bool = True,
+        use_lck_style: bool = True
     ):
         """
         Initialize the Commentary Generator.
@@ -66,16 +75,21 @@ class CommentaryGenerator:
         Args:
             enable_variations: Enable multiple commentary variations
             enable_context: Enable contextual commentary based on game state
+            use_lck_style: Use LCK (롤챔스) caster style commentary (default: True)
         """
         self.enable_variations = enable_variations
         self.enable_context = enable_context
+        self.use_lck_style = use_lck_style and LCK_STYLE_AVAILABLE
         self.last_commentary: Optional[str] = None
         self.commentary_history: List[Commentary] = []
 
         # Commentary templates
         self._init_templates()
 
-        logger.info(f"CommentaryGenerator initialized (variations={enable_variations}, context={enable_context})")
+        logger.info(
+            f"CommentaryGenerator initialized "
+            f"(LCK_style={self.use_lck_style}, variations={enable_variations}, context={enable_context})"
+        )
 
     def _init_templates(self) -> None:
         """Initialize commentary templates for various events."""
@@ -188,18 +202,29 @@ class CommentaryGenerator:
             else:
                 template = templates[0]
 
-            # Format template with event details
-            try:
-                text = template.format(**event.details)
-            except KeyError as e:
-                logger.warning(f"Missing key in event details: {e}")
-                text = event.description
+            # Use LCK style if enabled
+            if self.use_lck_style:
+                # Use LCK-style commentary
+                text = get_lck_commentary(event.event_type, event.details)
 
-            # Add situational commentary if context is enabled
-            if self.enable_context and game_state:
-                situational = await self._generate_situational_commentary(game_state)
-                if situational:
-                    text = f"{text} {situational}"
+                # Add LCK-style situational commentary if context is enabled
+                if self.enable_context and game_state:
+                    situational = get_lck_situational(game_state)
+                    if situational:
+                        text = f"{text} {situational}"
+            else:
+                # Use original templates
+                try:
+                    text = template.format(**event.details)
+                except KeyError as e:
+                    logger.warning(f"Missing key in event details: {e}")
+                    text = event.description
+
+                # Add original situational commentary if context is enabled
+                if self.enable_context and game_state:
+                    situational = await self._generate_situational_commentary(game_state)
+                    if situational:
+                        text = f"{text} {situational}"
 
             commentary = Commentary(
                 text=text,
