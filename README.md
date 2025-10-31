@@ -20,7 +20,11 @@ Discord에서 롤(League of Legends) 화면 공유를 실시간으로 분석하�
 - FFmpeg
 - (선택) CUDA 지원 GPU (TTS 성능 향상)
 
-### 2. 의존성 설치
+### 2. 플랫폼별 설치 가이드
+
+**Windows 사용자**: [WINDOWS_SETUP.md](WINDOWS_SETUP.md) 참조 (한글 가이드)
+
+**Linux/macOS**:
 
 ```bash
 # Python 패키지 설치
@@ -74,8 +78,16 @@ cp config.example.yaml config/config.yaml
 
 ### 1. 봇 실행
 
+**Windows**:
+```cmd
+run.bat
+```
+
+**Linux/macOS**:
 ```bash
 python src/main.py
+# 또는
+./run.py
 ```
 
 ### 2. Discord 명령어

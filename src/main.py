@@ -298,13 +298,16 @@ class AnnouncerAI:
 
 async def main():
     """메인 함수"""
-    # 시그널 핸들러 설정
+    # 시그널 핸들러 설정 (Windows 호환)
     def signal_handler(sig, frame):
         logger.info(f"시그널 수신: {sig}")
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+
+    # SIGTERM은 Windows에서 지원하지 않음
+    if hasattr(signal, 'SIGTERM'):
+        signal.signal(signal.SIGTERM, signal_handler)
 
     # AnnouncerAI 실행
     ai = AnnouncerAI()
