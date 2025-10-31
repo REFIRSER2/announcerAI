@@ -121,24 +121,60 @@ system:
 
 ### 5.1. Poetry 설치
 
+명령 프롬프트에서:
+
 ```cmd
 pip install poetry
 ```
 
 ### 5.2. TTS 서버 실행
 
-**명령 프롬프트 창 #1** (TTS 서버용):
+**방법 1: 배치 파일 사용 (추천)**
+
+명령 프롬프트에서:
+```cmd
+cd ttsclient-master
+start_tts_server.bat
+```
+
+**방법 2: 수동 실행**
+
+명령 프롬프트에서:
 
 ```cmd
+# ttsclient-master 폴더로 이동 (중요!)
 cd ttsclient-master
 
 # Git submodule 초기화
 git submodule update --init --recursive
 
-# Poetry로 의존성 설치
+# Poetry로 의존성 설치 (처음 한 번만)
 poetry install
 
 # TTS 서버 실행
+poetry run python -m ttsclient.main cui
+```
+
+⚠️ **중요**: 반드시 `ttsclient-master` 폴더 **안에서** 실행해야 합니다!
+
+### Poetry 오류 해결
+
+**오류**: `Poetry could not find a pyproject.toml file`
+
+**원인**: 현재 위치가 `ttsclient-master` 폴더가 아닙니다.
+
+**해결**:
+```cmd
+# 현재 위치 확인
+cd
+
+# 프로젝트 루트로 이동
+cd C:\Users\YourName\announcerAI
+
+# ttsclient-master로 이동
+cd ttsclient-master
+
+# 다시 실행
 poetry run python -m ttsclient.main cui
 ```
 
@@ -186,22 +222,45 @@ poetry run python -m ttsclient.main cui
 
 ## 7. 실행
 
-### 7.1. TTS 서버 먼저 실행
+### 방법 1: 자동 시작 (추천)
+
+프로젝트 루트 폴더에서:
+
+```cmd
+start_all.bat
+```
+
+이 배치 파일이 자동으로:
+1. TTS 서버를 새 창에서 시작
+2. 5초 대기
+3. Announcer AI 봇을 새 창에서 시작
+
+### 방법 2: 수동 시작
+
+#### 7.1. TTS 서버 먼저 실행
 
 **명령 프롬프트 창 #1**:
+```cmd
+cd ttsclient-master
+start_tts_server.bat
+```
+
+또는 수동으로:
 ```cmd
 cd ttsclient-master
 poetry run python -m ttsclient.main cui
 ```
 
-### 7.2. Announcer AI 실행
+#### 7.2. Announcer AI 실행
 
 **명령 프롬프트 창 #2** (새 창):
 ```cmd
-# 간편 실행 (배치 파일)
+# 프로젝트 루트 폴더에서
 run.bat
+```
 
-# 또는 직접 실행
+또는 직접 실행:
+```cmd
 python src\main.py
 ```
 

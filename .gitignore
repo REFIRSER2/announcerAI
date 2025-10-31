@@ -46,6 +46,7 @@ logs/
 
 # TTS Client
 ttsclient-master/
+!ttsclient-master/*.bat
 ttsclient-master.zip
 
 # Discord

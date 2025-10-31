@@ -78,16 +78,30 @@ cp config.example.yaml config/config.yaml
 
 ### 1. 봇 실행
 
-**Windows**:
+**Windows (간편 실행)**:
 ```cmd
+start_all.bat
+```
+이 명령어로 TTS 서버와 봇을 자동으로 시작합니다.
+
+**Windows (수동 실행)**:
+```cmd
+# 창 1: TTS 서버
+cd ttsclient-master
+start_tts_server.bat
+
+# 창 2: Announcer AI
 run.bat
 ```
 
 **Linux/macOS**:
 ```bash
+# 터미널 1: TTS 서버
+cd ttsclient-master
+poetry run python -m ttsclient.main cui
+
+# 터미널 2: Announcer AI
 python src/main.py
-# 또는
-./run.py
 ```
 
 ### 2. Discord 명령어
