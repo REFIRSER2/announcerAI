@@ -181,38 +181,72 @@ class VisionAnalyzer:
     def _create_system_prompt(self) -> str:
         """Create the system prompt for vision analysis."""
         return """당신은 리그 오브 레전드(League of Legends) 전문 게임 해설가이자 분석가입니다.
+롤 챔스(LCK)나 월드 챔피언십의 아나운서처럼 게임 상황을 정확하고 흥미롭게 분석합니다.
 
-제공된 게임 화면을 분석하고 다음 정보를 정확하게 파악하세요:
+제공된 게임 화면(스크린샷)을 분석하고 다음 정보를 정확하게 파악하세요:
 
-1. **게임 시간**: 현재 게임 진행 시간 (MM:SS 형식)
+## 분석해야 할 정보
 
-2. **팀 정보**:
-   - 블루팀 챔피언 목록
-   - 레드팀 챔피언 목록
+1. **게임 시간**:
+   - 화면 상단 중앙에 표시된 게임 진행 시간 (MM:SS 형식)
 
-3. **점수 정보**:
-   - 블루팀 킬 수
-   - 레드팀 킬 수
-   - 각 팀의 골드
+2. **팀 점수 (KDA)**:
+   - 블루팀 총 킬 수 (화면 왼쪽 상단)
+   - 레드팀 총 킬 수 (화면 오른쪽 상단)
+   - 예: "15 - 8" 형식으로 표시됨
 
-4. **오브젝트**:
-   - 드래곤 처치 현황 (어느 팀이 몇 개)
-   - 바론 처치 여부
-   - 타워 파괴 현황
+3. **골드 차이**:
+   - 각 팀의 총 골드 (화면에서 확인 가능하면)
+   - 골드 차이가 표시되어 있다면 그 값
+
+4. **챔피언 정보** (가능한 경우):
+   - 화면에 보이는 챔피언 이름
+   - 각 챔피언의 레벨, HP, 스킬 상태 등
+
+5. **오브젝트**:
+   - 드래곤 처치 현황 (화면 상단에 표시)
+   - 바론 나셔 처치 여부
+   - 파괴된 타워 개수 (미니맵이나 화면에서 확인)
    - 억제기 상태
 
-5. **현재 상황**:
-   - 진행 중인 전투나 교전
-   - 최근 발생한 킬
-   - 특별한 이벤트나 하이라이트
+6. **현재 진행 상황**:
+   - 팀파이트가 진행 중인가?
+   - 특정 챔피언이 킬을 기록했는가? (킬 알림)
+   - 오브젝트 싸움이 벌어지고 있는가?
+   - 게임이 종료되었는가? (Victory/Defeat 화면)
 
-6. **게임 분석**:
-   - 어느 팀이 우세한지
+7. **미니맵 분석** (가능한 경우):
+   - 챔피언들의 위치
+   - 타워/억제기 상태
    - 중요한 전략적 포인트
-   - 주목할 만한 플레이
 
-응답은 JSON 형식으로 구조화하여 제공하되, 해설 텍스트는 자연스러운 한국어로 작성하세요.
-없거나 확인할 수 없는 정보는 null이나 0으로 표시하세요."""
+## 출력 형식
+
+다음 JSON 형식으로 정확하게 응답하세요:
+
+{
+  "game_time": "15:30",
+  "blue_team_kills": 12,
+  "red_team_kills": 8,
+  "blue_team_gold": 45000,
+  "red_team_gold": 40000,
+  "visible_champions": ["야스오", "아리", "리신", "진", "레오나"],
+  "dragons_killed": {"blue": 2, "red": 1},
+  "baron_killed": false,
+  "towers_destroyed": {"blue": 3, "red": 5},
+  "inhibitors_destroyed": {"blue": 0, "red": 1},
+  "teamfight_ongoing": false,
+  "recent_kill": "블루팀의 야스오가 레드팀의 아리를 처치했습니다",
+  "game_ended": false,
+  "winning_team": null,
+  "analysis": "블루팀이 5000 골드 앞서가며 드래곤 우위를 점하고 있습니다. 레드팀은 타워를 더 많이 파괴했지만 킬 점수에서 밀리고 있습니다."
+}
+
+## 중요 사항
+- 화면에서 확인할 수 없는 정보는 null 또는 0으로 표시
+- 킬 알림이 화면에 표시되어 있다면 반드시 "recent_kill"에 기록
+- 숫자는 정확하게 읽어서 입력 (추측하지 말 것)
+- 롤 전문 용어를 사용하되, 자연스러운 한국어로 작성"""
 
     async def analyze_frame(
         self,
@@ -239,9 +273,20 @@ class VisionAnalyzer:
             image_data = await self._prepare_image(image)
 
             # Create prompt
-            user_prompt = "위 게임 화면을 분석하고 현재 게임 상황을 상세히 설명해주세요."
+            user_prompt = """이 리그 오브 레전드 게임 화면을 분석해주세요.
+
+화면에서 확인할 수 있는 모든 정보를 최대한 정확하게 읽어서 JSON 형식으로 응답해주세요.
+특히 다음을 주의깊게 확인하세요:
+- 상단 중앙의 게임 시간과 킬 점수
+- 킬 알림 메시지 (화면 중앙 상단이나 우측에 표시)
+- 미니맵의 타워/억제기 상태
+- 드래곤/바론 아이콘
+- 현재 진행 중인 전투나 이벤트
+
+JSON 응답만 제공하고, 다른 설명은 추가하지 마세요."""
+
             if additional_context:
-                user_prompt += f"\n\n추가 컨텍스트: {additional_context}"
+                user_prompt += f"\n\n추가 정보: {additional_context}"
 
             # Call API
             if self.api_provider == "openai":
@@ -382,7 +427,7 @@ class VisionAnalyzer:
         Parse API response into GameState.
 
         Args:
-            response: Raw API response text
+            response: Raw API response text (should be JSON)
 
         Returns:
             GameState object
@@ -394,34 +439,111 @@ class VisionAnalyzer:
             game_state = GameState()
             game_state.raw_analysis = response
 
-            # Try to extract JSON if present
-            json_match = re.search(r'\{.*\}', response, re.DOTALL)
-            if json_match:
-                try:
-                    data = json.loads(json_match.group())
+            # Try to extract JSON (GPT sometimes adds markdown code blocks)
+            # Remove ```json and ``` if present
+            cleaned_response = response.strip()
+            if cleaned_response.startswith("```json"):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.startswith("```"):
+                cleaned_response = cleaned_response[3:]
+            if cleaned_response.endswith("```"):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
 
-                    # Extract fields from JSON
-                    game_state.game_time = data.get("game_time", "00:00")
-                    game_state.blue_team_kills = data.get("blue_team_kills", data.get("blue_kills", 0))
-                    game_state.red_team_kills = data.get("red_team_kills", data.get("red_kills", 0))
-                    game_state.total_kills = game_state.blue_team_kills + game_state.red_team_kills
-                    game_state.blue_gold = data.get("blue_gold", 0)
-                    game_state.red_gold = data.get("red_gold", 0)
-                    game_state.gold_difference = game_state.blue_gold - game_state.red_gold
+            # Try to parse JSON
+            try:
+                data = json.loads(cleaned_response)
+                logger.debug(f"Successfully parsed JSON response: {data}")
 
-                    if "dragons" in data:
-                        game_state.dragons = data["dragons"]
-                    if "barons" in data:
-                        game_state.barons = data["barons"]
-                    if "summary" in data:
-                        game_state.analysis_summary = data["summary"]
+                # Extract fields from JSON
+                game_state.game_time = data.get("game_time", "00:00")
 
-                except json.JSONDecodeError:
-                    logger.warning("Failed to parse JSON from response")
+                # Team kills
+                game_state.blue_team_kills = data.get("blue_team_kills", 0)
+                game_state.red_team_kills = data.get("red_team_kills", 0)
+                game_state.total_kills = game_state.blue_team_kills + game_state.red_team_kills
+
+                # Gold
+                game_state.blue_gold = data.get("blue_team_gold", 0)
+                game_state.red_gold = data.get("red_team_gold", 0)
+                game_state.gold_difference = game_state.blue_gold - game_state.red_gold
+
+                # Champions
+                visible_champs = data.get("visible_champions", [])
+                game_state.blue_team_champions = visible_champs[:5] if len(visible_champs) >= 5 else visible_champs
+                game_state.red_team_champions = visible_champs[5:10] if len(visible_champs) > 5 else []
+
+                # Dragons
+                dragons_data = data.get("dragons_killed", {})
+                if isinstance(dragons_data, dict):
+                    game_state.dragons = {
+                        "blue": dragons_data.get("blue", 0),
+                        "red": dragons_data.get("red", 0)
+                    }
+
+                # Baron
+                baron_killed = data.get("baron_killed", False)
+                if baron_killed:
+                    game_state.barons = {"blue": 1, "red": 0}  # Assume blue team if not specified
+
+                # Towers (count remaining, not destroyed)
+                towers_data = data.get("towers_destroyed", {})
+                if isinstance(towers_data, dict):
+                    # Towers start at 11 each, subtract destroyed
+                    game_state.towers = {
+                        "blue": 11 - towers_data.get("blue", 0),
+                        "red": 11 - towers_data.get("red", 0)
+                    }
+
+                # Inhibitors (count remaining, not destroyed)
+                inhibitors_data = data.get("inhibitors_destroyed", {})
+                if isinstance(inhibitors_data, dict):
+                    # Inhibitors start at 3 each, subtract destroyed
+                    game_state.inhibitors = {
+                        "blue": 3 - inhibitors_data.get("blue", 0),
+                        "red": 3 - inhibitors_data.get("red", 0)
+                    }
+
+                # Current situation
+                game_state.in_teamfight = data.get("teamfight_ongoing", False)
+
+                # Recent kill event
+                recent_kill = data.get("recent_kill")
+                if recent_kill:
+                    # Try to parse "블루팀의 야스오가 레드팀의 아리를 처치했습니다"
+                    if "처치" in recent_kill:
+                        parts = recent_kill.split("가")
+                        if len(parts) >= 2:
+                            killer_part = parts[0].strip()
+                            victim_part = parts[1].split("를")[0].strip() if "를" in parts[1] else ""
+
+                            if "블루팀" in killer_part:
+                                game_state.killer_team = "blue"
+                            elif "레드팀" in killer_part:
+                                game_state.killer_team = "red"
+
+                            # Extract champion names (assuming format: "팀의 챔피언")
+                            if "의" in killer_part:
+                                game_state.last_killer = killer_part.split("의")[-1].strip()
+                            if "의" in victim_part:
+                                game_state.last_victim = victim_part.split("의")[-1].strip()
+
+                # Game end
+                game_state.game_ended = data.get("game_ended", False)
+                game_state.winner = data.get("winning_team") or ""
+
+                # Analysis summary
+                game_state.analysis_summary = data.get("analysis", "")
+
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse JSON from response: {e}")
+                logger.debug(f"Response text: {response[:500]}")
+
+                # Fallback: try to extract basic info with regex
+                game_state.analysis_summary = response[:300]
 
             # Generate summary if not present
             if not game_state.analysis_summary:
-                # Extract first meaningful sentence
                 sentences = response.split('.')
                 game_state.analysis_summary = sentences[0][:200] if sentences else response[:200]
 
